@@ -1,0 +1,4 @@
+wireless_config.h
+nodeMCU_humidity*/
+node_modules/
+**/*.db

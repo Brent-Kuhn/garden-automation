@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+html(lang="en")
+  block head
+    title= title
+    doctype html
+    //- link(rel="stylesheet", href="https://fonts.googleapis.com/icon?family=Material+Icons")
+    link(rel="stylesheet", type="text/css", href="/css/materialize.css")
+    
+    script(type="text/javascript", src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js")
+    script(type="text/javascript", src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js")
+
+    script(type="text/javascript", src="/js/materialize.js")
+    script(type="text/javascript", src="/js/jquery.js")
+    
+    meta(initial-scale=1.0, maximum-scale=1.0, user-scalable="no", width="device-width", name="viewport")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+
+    block headExtras
+
+  block body
+    div(class="section")
+      div(class="container-fluid") 
+
+    div(class="header")
+      nav(class="nav-wrapper")
+        div(class="container-fluid")
+          a(class="brand-logo" href="/") Smart Garden
+          a(href="#" data-target="mobile-nav" class="sidenav-trigger")
+            i(class="material-icons") menu
+          ul(class="right hide-on-med-and-down")
+            //- li
+            //-   a(href="/about" id='about') About
+            //- li
+            //-   a(href="/sensors" id="sensors") Sensors
+            
+
+      ul(class="sidenav" id="mobile-nav")
+        li
+          a(href="/") Home
+        //- li
+        //-   a(href="/about" id='about') About
+        //- li
+        //-   a(href="/sensors" id="sensors") Sensors
+
+    //- Add this back in if I want them wrapped in regular viewing windows, but the charts look better without
+    //- div(class="container" style="margin-top:25px")
+    //-   block content
+    //-   block extras
+    block content
+    block extras

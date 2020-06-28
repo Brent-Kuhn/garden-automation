@@ -1,0 +1,228 @@
+extends layout
+block headExtras
+  meta(http-equiv="refresh" content="180")
+
+block content
+  -for(var device in devices)
+    //- TODO Make a better id for these
+    div(class="row")
+      a(href="/device/"+devices[device].id)
+        div(class="col s12 m6 l4")
+          -var idTemp = devices[device].id + "temp"
+          canvas(id=idTemp height="250vh")
+        div(class="col s12 m6 l4")
+          -var idHum = devices[device].id + "hum"
+          canvas(id=idHum height="250vh")
+        div(class="col s12 m6 l4")
+          -var idMois = devices[device].id + "mois"
+          canvas(id=idMois height="250vh")
+
+    div(class ="row")
+        -var name = devices[device].name
+        div(class="col l3 s0")
+        div(class="input-field col s4")
+            input(id="new-name" type="text" class="validate")
+            label(for="new-name") !{name}
+        div(class="col s1")
+            style .btn{background-color:#532d8e}
+            button(class="waves-effect waves-light btn-large" type="submit" id="submit-new-name" name="submit-new-name" background-color:#532d8e) Change Name
+        div(class="col l3 s0")
+
+block headExtras
+  script(type="text/javascript", src="/js/Chart.js")
+
+//- TODO: Move this to an external file and use functions to call this?
+block extras
+  script.
+    $()
+    $("#submit-new-name").click(function(){
+        let newName = $("#new-name").val();
+        let id = devices[0].id;
+        let oldName = devices[0].name;
+        let url = "/api/v1/updateName?newName=" + newName + "&id=" + id + "&name=" + oldName;
+        $.post(url, function(data) {
+            location.reload();
+            alert("Response: " + JSON.stringify(data));
+        });
+    })
+  script.
+    let devices = !{JSON.stringify(devices)};
+    //- console.log(devices);
+    //- console.log(devices[0].date);
+    //- console.log(devices[0].temperature);
+    devices.forEach((device) => {
+      //- console.log(device);
+      //- console.log(devices);
+      let i = 0;
+      let data = [];
+      device.date.forEach((date) => {
+        let pair = {
+          'x': date,
+          'y': device.temperature[i]
+        };
+        data.push(pair);
+        i++;
+      });
+      console.log(data);
+      let id = device.id + "temp";
+      //- let ctx = document.getElementById(device.id);
+      window.id = new Chart(document.getElementById(id), {
+        type: 'line',
+        data: {
+          labels: device.date,
+          datasets: [{
+            label: "Sensor Data",
+            data: data
+          }]
+        },
+        options: {
+          responsive: true,
+          title: {
+            display: true,
+            text: device.name
+          },
+          tooltips: {
+            mode: 'index',
+            intersect: false,
+          },
+          hover: {
+            mode: 'nearest',
+            intersect: true
+          },
+          scales: {
+            xAxes: [{
+              display: true,
+              scaleLabel: {
+                display: true,
+                labelString: 'Date/Time'
+              }
+            }],
+            yAxes: [{
+              display: true,
+              scaleLabel: {
+                display: true,
+                labelString: 'Temerature Deg. C'
+              }
+            }]
+          }
+        }
+      });
+    });
+
+    devices.forEach((device) => {
+      //- console.log(device);
+      //- console.log(devices);
+      let i = 0;
+      let data = [];
+      device.date.forEach((date) => {
+        let pair = {
+          'x': date,
+          'y': device.humidity[i]
+        };
+        data.push(pair);
+        i++;
+      });
+      console.log(data);
+      let id = device.id + "hum";
+      //- let ctx = document.getElementById(device.id);
+      window.id = new Chart(document.getElementById(id), {
+        type: 'line',
+        data: {
+          labels: device.date,
+          datasets: [{
+            label: "Sensor Data",
+            data: data
+          }]
+        },
+        options: {
+          responsive: true,
+          title: {
+            display: true,
+            text: device.name
+          },
+          tooltips: {
+            mode: 'index',
+            intersect: false,
+          },
+          hover: {
+            mode: 'nearest',
+            intersect: true
+          },
+          scales: {
+            xAxes: [{
+              display: true,
+              scaleLabel: {
+                display: true,
+                labelString: 'Date/Time'
+              }
+            }],
+            yAxes: [{
+              display: true,
+              scaleLabel: {
+                display: true,
+                labelString: 'Humidity %'
+              }
+            }]
+          }
+        }
+      });
+    });
+
+    devices.forEach((device) => {
+      //- console.log(device);
+      //- console.log(devices);
+      let i = 0;
+      let data = [];
+      device.date.forEach((date) => {
+        let pair = {
+          'x': date,
+          'y': device.moisture[i]
+        };
+        data.push(pair);
+        i++;
+      });
+      console.log(data);
+      let id = device.id + "mois";
+      //- let ctx = document.getElementById(device.id);
+      window.id = new Chart(document.getElementById(id), {
+        type: 'line',
+        data: {
+          labels: device.date,
+          datasets: [{
+            label: "Sensor Data",
+            data: data
+          }]
+        },
+        options: {
+          responsive: true,
+          title: {
+            display: true,
+            text: device.name
+          },
+          tooltips: {
+            mode: 'index',
+            intersect: false,
+          },
+          hover: {
+            mode: 'nearest',
+            intersect: true
+          },
+          scales: {
+            xAxes: [{
+              display: true,
+              scaleLabel: {
+                display: true,
+                labelString: 'Date/Time'
+              }
+            }],
+            yAxes: [{
+              display: true,
+              scaleLabel: {
+                display: true,
+                labelString: 'Moisture %'
+              }
+            }]
+          }
+        }
+      });
+    });
