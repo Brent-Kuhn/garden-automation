@@ -1,4 +1,5 @@
-#include<ESP8266WiFi.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
 #include "wireless_config.h"
 
 
@@ -55,23 +56,38 @@ void setup() {
   dht.humidity().getSensor(&sensor);
   dht.begin();
   delayMS = sensor.min_delay / 1000;
+  //  TODO: Use the response from heartbeat to sleep on
 }
 
 String response;
 void loop(){
+  int first_val = 1;
+  int second_val = 2;
+  String host = server_prefix + String(first_val) + "." + String(second_val);
   sensorData ();
-  Serial.print("Connecting to: ");
-  Serial.print(host);
-  Serial.print(":");
-  Serial.println(port);
   WiFiClient client;
-  if(!client.connect(host,port))//IF THIS OCCURS MAKE THEN FIREWALL IS STOPPING THE CONNECTION OR THE IP ADDRESS/PORT OF THE SERVER IS INCORRECT.
+  /*
+    Warning!!! This is not safe!  If the while loop goes out of range before finding the server (i.e. the server was off)
+    the device is basically useless until it is rebooted.
+  */
+  while(!client.connect(host,port) || !(second_val < 255))
   {
-    Serial.println("CONNECTION FAILED");
-    delay(4000);
-    return;
+    Serial.print("Connecting to: ");
+    Serial.print(host);
+    Serial.print(":");
+    Serial.println(port);
+    second_val += 1;
+    host = server_prefix + String(first_val) + "." + String(second_val);
+    delay(100);
   }
-  else{
+//  if(!client.connect(host,port))//IF THIS OCCURS MAKE THEN FIREWALL IS STOPPING THE CONNECTION OR THE IP ADDRESS/PORT OF THE SERVER IS INCORRECT.
+//  {
+//    Serial.println("CONNECTION FAILED");
+//    delay(4000);
+//    return;
+//  }
+//  else
+  {
    Serial.println("CONNECTED TO THE SERVER");
    String urlInfo = "/api/v1/addData";
    urlInfo += "?";
@@ -87,22 +103,73 @@ void loop(){
    urlInfo += humidity;
    urlInfo += "&moisture=";
    urlInfo += moisture;
-   
+
+   // Post the device readings to the server
    client.print(String("POST ")+urlInfo+" HTTP/1.1\r\n"+"Host:"+host+"\r\n"+"Connection:close\r\n\r\n");
     unsigned long timeout=millis();
     while(client.available()==0)
     { 
       //close the connection if it has been connected for more than 5 seconds
-      if(millis()-timeout>5000){
-      Serial.println(">>> Client Timeout !");
-      client.stop();
-      delay(5000);
-      return;
+      if(millis()-timeout>5000)
+      {
+        Serial.println(">>> Client Timeout !");
+        client.stop();
+        delay(5000);
+        return;
       }
     }
     Serial.println("receiving from remote server");
     //Start reading the response from the server
     while (client.available()) {
+      String line = client.readStringUntil('\n');
+      if (line == "\r") 
+      {
+        Serial.println("headers received");
+        break;
+      }
+    }
+    String line = client.readStringUntil('\n');
+    Serial.println(line);
+
+    // Close the connection
+    Serial.println();
+    Serial.println("closing connection");
+    client.stop();
+  }
+  
+  Serial.print("Connecting to: ");
+  Serial.print(host);
+  Serial.print(":");
+  Serial.println(port);
+  if(!client.connect(host,port))//IF THIS OCCURS MAKE THEN FIREWALL IS STOPPING THE CONNECTION OR THE IP ADDRESS/PORT OF THE SERVER IS INCORRECT.
+  {
+    Serial.println("CONNECTION FAILED");
+    delay(4000);
+    return;
+  }
+  else
+  {
+   Serial.println("CONNECTED TO THE SERVER");
+    // Get the sleep time
+    String address = "/api/v1/heartbeat";
+    client.print(String("GET ") + address + " HTTP/1.1\r\n" + "Host: " + host + "\r\n" + "Connection: close\r\n\r\n");
+    unsigned long timeout=millis();
+    while(client.available()==0)
+    { 
+      //close the connection if it has been connected for more than 5 seconds
+      if(millis()-timeout>5000)
+      {
+        Serial.println(">>> Client Timeout !");
+        client.stop();
+        delay(5000);
+        return;
+      }
+    }
+    Serial.println("receiving from remote server");
+    //Start reading the response from the server
+    // TODO: Parse this for the heartbeat
+    while (client.available()) 
+    {
       String line = client.readStringUntil('\n');
       if (line == "\r") {
         Serial.println("headers received");
@@ -111,11 +178,15 @@ void loop(){
     }
     String line = client.readStringUntil('\n');
     Serial.println(line);
+    int heartBeat = line.toInt();
+
+    
     // Close the connection
     Serial.println();
     Serial.println("closing connection");
     client.stop();
-    delay(60000);
+
+    delay(heartBeat + 5000);
   }
 }
 
